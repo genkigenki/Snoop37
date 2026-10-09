@@ -94,6 +94,11 @@ enum { SMK_ADC_PADA = 1, SMK_ADC_PADB = 8, SMK_ADC_MUXC = 2 };
  * mux B; confirmed on a unit) white keys 0..7, the bottom row (pads 0..7, mux A) 8..15 */
 static const uint8_t SMK_WHITE_NOTE[SMK_NPAD] = {0, 2, 4, 6, 7, 9, 11, 12, 14, 16, 18, 19, 21, 23, 24, 26};
 #define SMK_PAD_OF_WHITE(w) ((w) < 8u ? (w) + 8u : (w) - 8u)   /* white key 0..15 -> hardware pad */
+/* the piano layout (the UI sets smk_pad_piano, e.g. for SCALE): bottom row C4 D4 E4 F4 G4 A4 B4 C5, top row the
+ * black keys between them (C#4 D#4 - F#4 G#4 A#4 - C#5); note-key index (0 = F3) by hardware pad, -1 = none */
+static const int8_t SMK_PIANO_NOTE[SMK_NPAD] = {7, 9, 11, 12, 14, 16, 18, 19, 8, 10, -1, 13, 15, 17, -1, 20};
+static volatile uint8_t smk_pad_piano;
+static uint8_t smk_pad_note[SMK_NPAD];   /* the note key a pad pressed (+1; 0 = none): its release ends that one */
 #define SMK_WHITE_OF_PAD(p) ((p) < 8u ? (p) + 8u : (p) - 8u)   /* (the same swap both ways) */
 
 #define SMK_TRIM_FLASH 0xC1000u   /* USRTRIM: the factory calibration record ("trimdat"), never written here */
@@ -428,7 +433,20 @@ static void fm1__frame(void)
 
 static void smk__padq(uint32_t pad, uint32_t vel)     /* a pad hit (vel) or release (0): its white key */
 {
-    uint32_t n = SMK_WHITE_NOTE[SMK_WHITE_OF_PAD(pad)], bit = 1u << n;
+    int32_t n0 = smk_pad_piano ? SMK_PIANO_NOTE[pad] : (int32_t)SMK_WHITE_NOTE[SMK_WHITE_OF_PAD(pad)];
+    uint32_t n, bit;
+    if (vel) {
+        if (n0 < 0)
+            return;                                   /* (a gap of the piano layout) */
+        smk_pad_note[pad] = (uint8_t)(n0 + 1);
+    } else {
+        if (!smk_pad_note[pad])
+            return;
+        n0 = smk_pad_note[pad] - 1;                    /* the key it pressed, whatever the layout is now */
+        smk_pad_note[pad] = 0;
+    }
+    n = (uint32_t)n0;
+    bit = 1u << n;
     if (vel) {
         fm1_in.key_vel[SMK_KEY_F3 + n] = (uint8_t)vel;
         fm1_in.pnotes |= bit;

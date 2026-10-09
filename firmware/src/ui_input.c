@@ -280,15 +280,55 @@ static void ui_leds(void)
 #if BOARD_SMK37
     for (c = 0; c < SMK_NLED; c++)                 /* the buttons: on / off (no dim layers) */
         fm1_led[c] = nl[c];
-    if ((int32_t)(fm1_ms - padled_hold_until) >= 0) {   /* the pads: white key i, in the selected track's colour */
+    smk_pad_piano = ui.layer == LY_SCALE;          /* SCALE held: the pads are a little piano (smk_input.h) */
+    if ((int32_t)(fm1_ms - padled_hold_until) >= 0) {   /* the pads. Off is off: no glow layers */
         static const uint8_t PAL[NTRK][3] = {{255, 0, 0}, {0, 255, 0}, {0, 80, 255}, {255, 180, 0}};   /* red, green, blue, drums yellow */
         const uint8_t *col = PAL[song.sel % NTRK];
-        for (c = 0; c < 16u; c++) {
-            uint32_t id = LED_KEY(key_of_white(c)), sh = nl[id] ? 2u : dl[id] ? 5u : bl[id] ? 7u : 0u;
-            if (sh)
-                padled_set(SMK_PAD_OF_WHITE(c), (uint8_t)(col[0] >> sh), (uint8_t)(col[1] >> sh), (uint8_t)(col[2] >> sh));
-            else
-                padled_set(SMK_PAD_OF_WHITE(c), 0, 0, 0);
+        if (ui.layer == LY_SCALE) {                /* white and black keys lit white, the scale green, its root brighter */
+            uint32_t sk = scale_keys(0), rk = scale_keys(1);
+            for (c = 0; c < 16u; c++) {
+                int32_t n = SMK_PIANO_NOTE[c];
+                if (n < 0)
+                    padled_set(c, 0, 0, 0);
+                else if ((fm1_in.notes >> n) & 1u)
+                    padled_set(c, 90, 90, 90);
+                else if ((rk >> n) & 1u)
+                    padled_set(c, 0, 90, 0);
+                else if ((sk >> n) & 1u)
+                    padled_set(c, 0, 30, 0);
+                else
+                    padled_set(c, 6, 6, 6);
+            }
+        } else if (ui.layer == LY_SONG) {          /* SAVE held: slots A..D used green, free white; store armed red */
+            uint32_t ready = arrangement_ready();
+            for (c = 0; c < 16u; c++) {
+                uint32_t p = SMK_PAD_OF_WHITE(c), i = c & 3u, used = (ready >> i) & 1u;
+                if (c < 8u) {
+                    int playing = c < 4u && live_sec == (int8_t)i && !arrangement_clock.running;
+                    if (c >= 4u && sec_armed == i + 1u)
+                        padled_set(p, 90, 0, 0);
+                    else if (used)
+                        padled_set(p, 0, playing ? 110 : 40, 0);
+                    else
+                        padled_set(p, 18, 18, 18);
+                } else if (c == 12u) {
+                    padled_set(p, 0, arrangement_enabled ? 70 : 15, arrangement_enabled ? 70 : 15);   /* loop / song */
+                } else if (c == 13u) {
+                    padled_set(p, srec ? 90 : 15, 0, 0);                                            /* SONG REC */
+                } else if (c == 15u) {
+                    padled_set(p, 18, 18, 18);                                                      /* song screen */
+                } else {
+                    padled_set(p, 0, 0, 0);
+                }
+            }
+        } else {                                   /* the track's colour: lit bright; playing, its steps normal */
+            for (c = 0; c < 16u; c++) {
+                uint32_t id = LED_KEY(key_of_white(c)), sh = nl[id] ? 1u : (ui.layer == LY_PLAY && dl[id]) ? 3u : 0u;
+                if (sh)
+                    padled_set(SMK_PAD_OF_WHITE(c), (uint8_t)(col[0] >> sh), (uint8_t)(col[1] >> sh), (uint8_t)(col[2] >> sh));
+                else
+                    padled_set(SMK_PAD_OF_WHITE(c), 0, 0, 0);
+            }
         }
     }
 #else
