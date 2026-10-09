@@ -182,11 +182,16 @@ def build_loader():
 def build_app():
     flags = [*CFLAGS, *BOARD_DEFS[BOARD], "-Ifirmware/hal", "-Ifirmware/src", "-Ibuild/gen"]
     for flag in ("FELUCCA_FLASH", "FELUCCA_OTA", "FELUCCA_OTA_DRYRUN", "FELUCCA_CDC", "FELUCCA_UART",
-                 "FELUCCA_ICONS", "FELUCCA_SLICE", "FELUCCA_CDC_ON"):
+                 "FELUCCA_ICONS", "FELUCCA_SLICE", "FELUCCA_CDC_ON", "FELUCCA_DATA_UNTAGGED_OK"):
         v = os.environ.get(flag)    # unset: the default in firmware/src/felucca.c
         if v in ("0", "1"):
             flags.append(f"-D{flag}={v}")
     flags.append(f'-DFELUCCA_ID="{PRODUCT}"')
+    fam = os.environ.get("FELUCCA_DATA_FAMILY")   # SMK store owner (storage.c): a ported firmware's own family
+    if fam:
+        if not re.fullmatch(r"[A-Z0-9]{1,7}", fam):
+            raise SystemExit("FELUCCA_DATA_FAMILY: 1..7 of A-Z 0-9")
+        flags.append(f'-DFELUCCA_DATA_FAMILY="{fam}"')
     if VERSION:
         flags.append(f'-DFELUCCA_VERSION="{VERSION}"')
     tc_all(("cc", "-c", FW / "crt0.S", "-o", OUT / "crt0.o"),

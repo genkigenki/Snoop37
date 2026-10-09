@@ -559,6 +559,7 @@ static void persist_boot(void)                    /* before settings_init / pane
         return;
     fl_plain_window_init();                        /* flash above 0x93000 (SMK 0x9D000) reads as plaintext through XIP
                                                     * (user sample sets are played from there) */
+    st_owner_check();                              /* SMK: never parse another ported firmware's store (storage.c) */
     {
         uint32_t k;
         for (k = 0; k < SMP_USER_SLOTS; k++)

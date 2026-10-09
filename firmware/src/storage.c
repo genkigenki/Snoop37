@@ -64,7 +64,48 @@ static uint32_t st_sector(uint32_t obj, uint32_t copy)  /* flash offset of copy 
         [OBJ_UPRESET0] = 4, [OBJ_UPRESET0 + 1] = 5, [OBJ_AUTOSAVE] = 6, [OBJ_FM6BANK] = 7, [OBJ_SETTINGS] = 8};
     return ST_SMK_BASE + (ORDER[obj % OBJ_COUNT] * 2u + (copy & 1u)) * ST_SECTOR;
 }
+
+/* The owner of the store. Several FM-1 firmwares are ported to the SMK-37 Pro with the same board layer and
+ * this same store area, each with its own object formats: a firmware must never parse another's data. The
+ * sector after the objects (0xAF000) holds "SMK37DATA" + the firmware family (FELUCCA_DATA_FAMILY, build.py).
+ * Ours: load as ever. None (erased): data written before the tag existed, by the SLOOP family only
+ * (FELUCCA_DATA_UNTAGGED_OK): keep it; anyone else clears it. Another family's: clear the objects (the other
+ * firmware's projects; its own backups are its business) and take the store. Samples (FL_SMP) validate
+ * themselves. Calibration, BT pairing and key_mac are outside FL_DATA: never touched. */
+#ifndef FELUCCA_DATA_FAMILY
+#define FELUCCA_DATA_FAMILY "SLOOP"
+#endif
+#ifndef FELUCCA_DATA_UNTAGGED_OK
+#define FELUCCA_DATA_UNTAGGED_OK 1
+#endif
+#define ST_OWNER_OFF (ST_SMK_BASE + ST_SMK_SECTORS * ST_SECTOR)
+_Static_assert(ST_OWNER_OFF + ST_SECTOR <= 0xBB000u, "SMK store owner: past FL_DATA");
+static uint8_t st_owner_cleared;                /* (the UI may say so) */
+static void st_owner_check(void)
+{
+    static const char FAM[] = FELUCCA_DATA_FAMILY;
+    uint8_t tag[16], want[16];
+    uint32_t i, erased = 1, ours = 1, s;
+    for (i = 0; i < 16u; i++)
+        want[i] = i < 9u ? (uint8_t)"SMK37DATA"[i] : i - 9u < sizeof FAM - 1u ? (uint8_t)FAM[i - 9u] : 0u;
+    if (st_read(ST_OWNER_OFF, tag, 16))
+        return;
+    for (i = 0; i < 16u; i++) {
+        erased &= tag[i] == 0xFFu;
+        ours &= tag[i] == want[i];
+    }
+    if (ours)
+        return;
+    if (!erased || !FELUCCA_DATA_UNTAGGED_OK) {     /* another firmware's store: clear it */
+        for (s = 0; s < ST_SMK_SECTORS; s++)
+            st_erase(ST_SMK_BASE + s * ST_SECTOR);
+        st_owner_cleared = 1;
+    }
+    st_erase(ST_OWNER_OFF);
+    st_prog(ST_OWNER_OFF, want, 16);
+}
 #else
+static void st_owner_check(void) {}
 static uint32_t st_sector(uint32_t obj, uint32_t copy)  /* flash offset of copy A (0) / B (1) */
 {
     if (obj == OBJ_SETTINGS)
