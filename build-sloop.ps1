@@ -8,7 +8,7 @@ Write-Host "  S L O O P   2.5" -ForegroundColor White
 Write-Host "  ---- ---- ---- ----" -ForegroundColor DarkGray
 Write-Host "== Building the firmware (WSL MinUI-Build)" -ForegroundColor Cyan
 Remove-Item Env:FELUCCA_SLICE -ErrorAction SilentlyContinue
-python tools/build_windows.py --distro MinUI-Build --toolchain /root/fm1-codex-deps/jieli/toolchain --sdk build/deps/ac79 --slice 0
+python tools/build_windows.py --distro MinUI-Build --toolchain /root/.jieli/toolchain --sdk build/deps/ac79 --slice 0
 if ($LASTEXITCODE -ne 0) { throw "The build failed" }
 Write-Host "== Making the installer site" -ForegroundColor Cyan
 python web/make_site.py build/felucca.fwsc 2.5 build/sloop-site
