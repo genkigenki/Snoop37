@@ -178,6 +178,10 @@ static uint32_t keys_lit(void)
     m = fm1_in.notes;
     if (is_drum(t) || lights_notes)                /* the drum track: each hit lights its key; NOTES: the synths too */
         m |= keys_sounding(t);
+#if BOARD_SMK37
+    if (song.playing && ui.layer == LY_PLAY)       /* the pads: the playhead runs over the pattern */
+        m |= 1u << key_of_white(t->seq_idx % 16u);
+#endif
     return m;
 }
 
@@ -206,6 +210,21 @@ static uint32_t keys_notes_dim(void)
  * 1, 5, 9, 13) while a layer is held, and on the drum track (its 16 sounds, 4 x 4 as on KIT) */
 static uint32_t keys_guide(void)
 {
+#if BOARD_SMK37
+    if (ui.layer == LY_PLAY) {                     /* the pads, playing: the selected track's steps glow (this page or,
+                                                    * playing, the playhead's), as a groovebox shows its pattern */
+        track_t *t = TSEL;
+        uint32_t len = trk_len(t), b0 = (song.playing ? t->seq_idx / 16u : ui.step_page) * 16u, m = 0, i, on;
+        for (i = 0; i < 16u; i++) {
+            if (b0 + i >= len)
+                continue;
+            on = is_drum(t) ? dstep_mask(&t->dstep[b0 + i]) != 0u : step_on(&t->step[b0 + i]);
+            if (on)
+                m |= 1u << key_of_white(i);
+        }
+        return m;
+    }
+#endif
     if (ui.layer == LY_PLAY && !is_drum(TSEL))
         return 0u;
     return 1u << key_of_white(0) | 1u << key_of_white(4) | 1u << key_of_white(8) | 1u << key_of_white(12);

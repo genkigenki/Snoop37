@@ -56,6 +56,8 @@
 #define SMK_DEB_RELEASE 4u        /* frames open in a row: a button release (~6 ms) */
 #define SMK_DEB_PRESS 2u          /* frames closed in a row: a button press (~3 ms) */
 #define SMK_KEY_REL 3u            /* frames with contact 1 open: a key release (~5 ms) */
+#define SMK_ENC_DIV 4             /* decoder counts a step: a detent is a whole quadrature cycle (the stock's 2
+                                   * gave two UI steps a click, as the FM-1 has one) */
 enum { FM1_BTN_OCT_DOWN = 4, FM1_BTN_OCT_UP = 5 };   /* (main.c: the power-on combo) */
 #define FM1_OCT_BOTH (1u << FM1_BTN_OCT_DOWN | 1u << FM1_BTN_OCT_UP)
 
@@ -389,10 +391,10 @@ static void smk__encoders(void)                    /* stock decoder: 3-state win
             fm1_in.enc_cnt[e]--;                     /* A leads */
         else if (h == 0x0Bu || h == 0x12u || h == 0x2Du || h == 0x34u)
             fm1_in.enc_cnt[e]++;                     /* B leads */
-        if (fm1_in.enc_cnt[e] >= 2 || fm1_in.enc_cnt[e] <= -2) {   /* stock: one step per 2 counts */
-            int32_t s = fm1_in.enc_cnt[e] / 2;
+        if (fm1_in.enc_cnt[e] >= SMK_ENC_DIV || fm1_in.enc_cnt[e] <= -SMK_ENC_DIV) {   /* one step a detent */
+            int32_t s = fm1_in.enc_cnt[e] / SMK_ENC_DIV;
             fm1_in.enc_steps[e] = (int16_t)(fm1_in.enc_steps[e] + s);
-            fm1_in.enc_cnt[e] = (int16_t)(fm1_in.enc_cnt[e] - s * 2);
+            fm1_in.enc_cnt[e] = (int16_t)(fm1_in.enc_cnt[e] - s * SMK_ENC_DIV);
         }
     }
 }
