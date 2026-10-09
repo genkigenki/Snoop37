@@ -281,6 +281,8 @@ static void ui_leds(void)
     for (c = 0; c < SMK_NLED; c++)                 /* the buttons: on / off (no dim layers) */
         fm1_led[c] = nl[c];
     smk_pad_piano = ui.layer == LY_SCALE;          /* SCALE held: the pads are a little piano (smk_input.h) */
+    if (!is_drum(TSEL) && TSEL->p[P_AMODE])        /* ARP lit while the selected track's arpeggiator runs */
+        fm1_led[panel.btn[B_ARP]] = 1;
     if ((int32_t)(fm1_ms - padled_hold_until) >= 0) {   /* the pads. Off is off: no glow layers */
         static const uint8_t PAL[NTRK][3] = {{255, 0, 0}, {0, 255, 0}, {0, 80, 255}, {255, 180, 0}};   /* red, green, blue, drums yellow */
         const uint8_t *col = PAL[song.sel % NTRK];
