@@ -1302,13 +1302,13 @@ static uint32_t key_lvl(void)
 /* SMK-37 Pro: velocity keys and pads. A key's velocity (a pad: its white key's, smk_input.h); on the drum
  * track it picks the level unless OCT- / OCT+ is held */
 static uint32_t key_vel(uint32_t k) { return fm1_in.key_vel[SMK_KEY_F3 + k]; }
-static uint32_t key_lvl_of(uint32_t k)
+static uint32_t smk_vel_lvl(uint32_t v)            /* a velocity -> the drum level, unless OCT- / OCT+ is held */
 {
-    uint32_t v = key_vel(k);
     if (fm1_in.buttons & (dyn_bit[0] | dyn_bit[1]))
         return key_lvl();
     return v < 40u ? LV_GHOST : v < 80u ? LV_SOFT : v > 112u ? LV_HARD : LV_NORM;
 }
+static uint32_t key_lvl_of(uint32_t k) { return smk_vel_lvl(key_vel(k)); }
 #else
 #define key_vel(k) 100u
 #define key_lvl_of(k) key_lvl()
@@ -1550,9 +1550,12 @@ static void audition_block(void)
 }
 
 #if BOARD_SMK37
-/* the SMK's 10 keys beyond the FM-1's 27 (C3..E3 below, G#5..C6 above): plain notes on a synth track
- * in PLAY, chromatic from the FM-1 key map (53 = F3), with OCT and TRANS; silent elsewhere */
-static uint8_t ext_note[FM1_NKEY], ext_trk[FM1_NKEY];   /* note + 1 sounding, 0 = none */
+/* the SMK's 10 keys beyond the FM-1's 27 (C3..E3 below, G#5..C6 above), in PLAY. A synth track: plain notes,
+ * chromatic from the FM-1 key map (53 = F3), with OCT and TRANS. The drum track: more drums, as the 27 keys do
+ * (a white key a sound, a black key the white key's left of it): C3 KICK, D3 SNARE, E3 HAT below; A5 OPEN HAT,
+ * B5 CRASH, C6 RIDE above (G#5: COWBELL, G5's). Only the 16 lanes: projects stay SLOOP / FM-1 compatible. */
+static uint8_t ext_note[FM1_NKEY], ext_trk[FM1_NKEY];   /* note + 1 sounding, 0 = none; 0x80 | lane: a drum */
+static const int8_t EXT_LANE[FM1_NKEY] = {0, 0, 2, 2, 4, [32] = 15, [33] = 5, [34] = 5, [35] = 11, [36] = 12};
 static void ext_keys_block(void)
 {
     int32_t e;
@@ -1562,7 +1565,14 @@ static void ext_keys_block(void)
         if (k >= FM1_NKEY)
             continue;
         if (!v) {
-            if (ext_note[k]) {
+            if (ext_note[k] & 0x80u) {                    /* a drum key let go */
+                uint32_t lane = ext_note[k] & 15u;
+                if (ft_on && ft_trk == TRK_DRUM)
+                    ft_note_off(lane);
+                mc = trk_midi_ch(TRK_DRUM);
+                midi_out_event(0x08u | (0x80u | mc) << 8 | (uint32_t)LANE_NOTE[lane] << 16);
+                ext_note[k] = 0;
+            } else if (ext_note[k]) {
                 t = &trk[ext_trk[k] % NTRK];
                 mc = trk_midi_ch(ext_trk[k] % NTRK);
                 input_off(t, ext_note[k] - 1u);
@@ -1571,8 +1581,16 @@ static void ext_keys_block(void)
             }
             continue;
         }
-        if (is_drum(t) || layer_now() != LY_PLAY || ext_note[k])
+        if (layer_now() != LY_PLAY || ext_note[k])
             continue;
+        if (is_drum(t)) {                                 /* more drums */
+            uint32_t lane = (uint32_t)EXT_LANE[k] & 15u, lvl = smk_vel_lvl(v);
+            ext_note[k] = (uint8_t)(0x80u | lane);
+            drum_input(lane, lvl, 0, 1);
+            mc = trk_midi_ch(TRK_DRUM);
+            midi_out_event(0x09u | (0x90u | mc) << 8 | (uint32_t)LANE_NOTE[lane] << 16 | lvl_vel(lvl, 100) << 24);
+            continue;
+        }
         {
             uint32_t n = (uint32_t)clamp(53 + (int32_t)k - (int32_t)SMK_KEY_F3 + 12 * song.octave + t->p[P_TRANS], 0, 127);
             ext_note[k] = (uint8_t)(n + 1u);
