@@ -74,15 +74,21 @@ static void hexs(char *b, uint32_t v)
 }
 
 #if BOARD_SMK37
-/* the SMK-37 Pro's 4 faders: the levels of tracks 1..4 (the drum track: DRUMS LVL). A fader takes over
- * only once it moves, so power-on and a loaded project keep their levels. (Fader order: to confirm.) */
+/* the SMK-37 Pro's 4 faders, tracks 1..4 (4 = drums), by FADER BANK (ui_input.c smk_fbank): A level, B the
+ * track's filter (P_TFLT: low-pass left, open in the middle, high-pass right), C reverb send, D delay send.
+ * A fader takes over only once it moves (also after a bank change), so nothing jumps. */
 static void smk_faders(void)
 {
     static uint8_t last[4] = {0xFF, 0xFF, 0xFF, 0xFF};
     uint32_t i;
+    if (smk_fbank_new) {                                  /* a new bank: wait for each fader to move */
+        smk_fbank_new = 0;
+        for (i = 0; i < 4u; i++)
+            last[i] = 0xFF;
+    }
     for (i = 0; i < 4u && i < NTRK; i++) {
         uint32_t v = fm1_in.fader[i];
-        int16_t *lv;
+        int16_t *pv;
         if (last[i] == 0xFF || fm1_in.frames < 200u) {   /* (the first readings settle) */
             last[i] = (uint8_t)v;
             continue;
@@ -90,8 +96,23 @@ static void smk_faders(void)
         if (v == last[i])
             continue;
         last[i] = (uint8_t)v;
-        lv = i == TRK_DRUM ? &song.g[G_DRLVL] : &trk[i].p[P_LEVEL];
-        *lv = (int16_t)v;
+        switch (smk_fbank) {
+        case 1:
+            trk[i].p[P_TFLT] = (int16_t)((int32_t)v - 64);
+            break;
+        case 2:
+            pv = i == TRK_DRUM ? &song.g[G_DRREV] : &trk[i].p[P_REV];
+            *pv = (int16_t)v;
+            break;
+        case 3:
+            pv = i == TRK_DRUM ? &song.g[G_DRDLY] : &trk[i].p[P_DLY];
+            *pv = (int16_t)v;
+            break;
+        default:
+            pv = i == TRK_DRUM ? &song.g[G_DRLVL] : &trk[i].p[P_LEVEL];
+            *pv = (int16_t)v;
+            break;
+        }
         ui.force = 1;
     }
 }

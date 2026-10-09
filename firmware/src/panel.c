@@ -14,7 +14,7 @@ static const char *const B_NAME[NB] = {"FX", "SEL", "ENV", "LFO", "EDIT", "GLO",
 static const char *const E_NAME[NE] = {"SELECT", "ALGORITHM", "PRESETS", "KNOB 1", "KNOB 2",
                                         "KNOB 3", "KNOB 4"};
 #if BOARD_SMK37
-#define PANEL_MAGIC 0x504E5333u          /* "PNS3" (SMK-37 Pro): bump when PANEL_DEFAULT changes */
+#define PANEL_MAGIC 0x504E5334u          /* "PNS4" (SMK-37 Pro): bump when PANEL_DEFAULT changes */
 #else
 #define PANEL_MAGIC 0x50414E35u          /* "PAN5": bump when PANEL_DEFAULT changes */
 #endif
@@ -31,13 +31,13 @@ panel_t panel __attribute__((section(".noinit")));
 /* SMK-37 Pro (smk_input.h button ids, confirmed on a unit; the printed SMK label -> the FM-1 function):
  * FX = FX, SCALE = SEL, CHORD = ENV, NOTE REPEAT = LFO, PARA = EDIT, GLOBE = GLO, PATCH = HOME, BT = SAVE,
  * ARP, SEQ as printed, SEQ PLAY = PLAY, SEQ REC = REC, OCTAVE- / + as printed. KNOB BANK, FADER BANK, < and >
- * stay free. Knobs: K1..K4 = KNOB 1..4 (the screen's four dials, left to right), K5 = SELECT, K6 = ALGORITHM
- * (track), K7 = PRESETS, K8 = MASTER (smk_input.h: the FM-1's MASTER pot, as a virtual one).
+ * stay free. Knobs as the FM-1's top row: K1 = MASTER (smk_input.h: the FM-1's MASTER pot, as a virtual one),
+ * K2 = SELECT, K3 = ALGORITHM (track), K4 = PRESETS; K5..K8 = KNOB 1..4 (the screen's four dials).
  * HARDWARE CALIBRATION (OCT- + OCT+ at power-on) re-teaches all of it. */
 static const panel_t PANEL_DEFAULT = {
     PANEL_MAGIC,
     {14, 8, 9, 7, 13, 10, 12, 11, 6, 15, 16, 17, 4, 5},
-    {4, 5, 6, 0, 1, 2, 3},
+    {1, 2, 3, 4, 5, 6, 7},
     {1, 1, 1, 1, 1, 1, 1},
 };
 #else

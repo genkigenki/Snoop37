@@ -5,6 +5,7 @@
 /* The LED picture is built off-line and copied one byte per column: clearing
  * and relighting would let the 10 kHz scan catch the dark gap and flicker. */
 #if BOARD_SMK37
+static uint8_t smk_fbank, smk_fbank_new;           /* FADER BANK: 0 level, 1 filter, 2 reverb, 3 delay (main.c smk_faders) */
 /* SMK-37 Pro: one flag per id. Ids 0..18 are the button LEDs (smk_input.h), the note keys (no LEDs of
  * their own) take LED_KEY0 + k; ui_leds shows white keys F3..G5 on the 16 RGB pads. */
 #define LED_BUF 64u
@@ -281,6 +282,7 @@ static void ui_leds(void)
     for (c = 0; c < SMK_NLED; c++)                 /* the buttons: on / off (no dim layers) */
         fm1_led[c] = nl[c];
     smk_pad_piano = ui.layer == LY_SCALE;          /* SCALE held: the pads are a little piano (smk_input.h) */
+    fm1_led[SMK_BTN_FADER_BANK] = smk_fbank != 0;  /* FADER BANK lit off bank A */
     if (!is_drum(TSEL) && TSEL->p[P_AMODE])        /* ARP lit while the selected track's arpeggiator runs */
         fm1_led[panel.btn[B_ARP]] = 1;
     if ((int32_t)(fm1_ms - padled_hold_until) >= 0) {   /* the pads. Off is off: no glow layers */
@@ -895,6 +897,27 @@ static void holds_input(uint32_t pressed, uint32_t now_ms)
 static void ui_input(void)
 {
     uint32_t pressed = fm1_input_edges(0), notes = fm1_input_note_edges(), now = fm1_ticks(), id, b, k;
+#if BOARD_SMK37
+    if (pressed & (1u << SMK_BTN_LEFT | 1u << SMK_BTN_RIGHT)) {   /* < >: SEQ held: the step pages; the visualiser:
+                                                                * its style; else the pages, as SELECT (never the tempo) */
+        int32_t d = (pressed >> SMK_BTN_RIGHT) & 1u ? 1 : -1;
+        if (ui.layer == LY_STEP) {
+            uint32_t pages = (trk_len(TSEL) + 15u) / 16u;
+            ui.step_page = (uint8_t)((ui.step_page + pages + (uint32_t)d) % (pages ? pages : 1u));
+        } else if (vis_shown()) {
+            vis_select(d);
+        } else {
+            page_walk(d);
+        }
+        ui.force = 1;
+    }
+    if (pressed & 1u << SMK_BTN_FADER_BANK) {                   /* FADER BANK: what the four faders set */
+        static const char *const FB[4] = {"A  LEVEL", "B  FILTER", "C  REVERB", "D  DELAY"};
+        smk_fbank = (uint8_t)((smk_fbank + 1u) % 4u);
+        smk_fbank_new = 1;
+        ui_say("FADER BANK ", FB[smk_fbank]);
+    }
+#endif
     uint32_t home = btn_hold(&ui.home_t0, B_HOME, now, 1);
     int32_t s;
     int layered;

@@ -58,7 +58,8 @@
 #define SMK_KEY_REL 3u            /* frames with contact 1 open: a key release (~5 ms) */
 #define SMK_ENC_DIV 4             /* decoder counts a step: a detent is a whole quadrature cycle (the stock's 2
                                    * gave two UI steps a click, as the FM-1 has one) */
-enum { FM1_BTN_OCT_DOWN = 4, FM1_BTN_OCT_UP = 5 };   /* (main.c: the power-on combo) */
+enum { FM1_BTN_OCT_DOWN = 4, FM1_BTN_OCT_UP = 5 };
+enum { SMK_BTN_KNOB_BANK = 0, SMK_BTN_FADER_BANK = 1, SMK_BTN_LEFT = 2, SMK_BTN_RIGHT = 3 };   /* (main.c: the power-on combo) */
 #define FM1_OCT_BOTH (1u << FM1_BTN_OCT_DOWN | 1u << FM1_BTN_OCT_UP)
 
 /* ---------------------------------------------------------------- tables --- */
@@ -649,7 +650,7 @@ static void fm1_led_key(uint32_t id, int on)
 /* fm1_adc.h stand-ins for main.c: the battery comes from mux C; the FM-1's MASTER pot is knob K8 here, as a
  * virtual pot (0..1023, 24 a detent; starts at 724: SLOOP's master_q12 2048, as before) */
 enum { FM1_ADC_BATT = 3, FM1_ADC_MASTER = 4 };
-#define SMK_ENC_MASTER 7u
+#define SMK_ENC_MASTER 0u          /* K1, where the FM-1 has its MASTER pot (top left) */
 static int32_t smk_master = 724;
 static void fm1_adc_init(void) {}
 static int32_t fm1_enc_take(uint32_t e);
