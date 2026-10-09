@@ -286,7 +286,7 @@ static void ui_leds(void)
     if (!is_drum(TSEL) && TSEL->p[P_AMODE])        /* ARP lit while the selected track's arpeggiator runs */
         fm1_led[panel.btn[B_ARP]] = 1;
     if ((int32_t)(fm1_ms - padled_hold_until) >= 0) {   /* the pads. Off is off: no glow layers */
-        static const uint8_t PAL[NTRK][3] = {{255, 0, 0}, {0, 255, 0}, {0, 80, 255}, {255, 180, 0}};   /* red, green, blue, drums yellow */
+        static const uint8_t PAL[NTRK][3] = {{40, 124, 255}, {30, 204, 112}, {255, 198, 24}, {255, 98, 26}};   /* the screen's track colours (TE_COL) */
         const uint8_t *col = PAL[song.sel % NTRK];
         if (ui.layer == LY_SCALE) {                /* white and black keys lit white, the scale green, its root brighter */
             uint32_t sk = scale_keys(0), rk = scale_keys(1);
