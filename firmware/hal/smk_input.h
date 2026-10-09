@@ -628,12 +628,21 @@ static void fm1_led_key(uint32_t id, int on)
         fm1_led[id] = (uint8_t)(on != 0);
 }
 
-/* fm1_adc.h stand-ins for main.c: the battery comes from mux C; there is no MASTER pot (-1) */
+/* fm1_adc.h stand-ins for main.c: the battery comes from mux C; the FM-1's MASTER pot is knob K8 here, as a
+ * virtual pot (0..1023, 24 a detent; starts at 724: SLOOP's master_q12 2048, as before) */
 enum { FM1_ADC_BATT = 3, FM1_ADC_MASTER = 4 };
+#define SMK_ENC_MASTER 7u
+static int32_t smk_master = 724;
 static void fm1_adc_init(void) {}
+static int32_t fm1_enc_take(uint32_t e);
 static int32_t fm1_adc_read(uint32_t ch)
 {
     if (ch == FM1_ADC_BATT)
         return fm1_in.batt ? (int32_t)fm1_in.batt : -1;
+    if (ch == FM1_ADC_MASTER) {
+        smk_master += fm1_enc_take(SMK_ENC_MASTER) * 24;
+        smk_master = smk_master < 0 ? 0 : smk_master > 1023 ? 1023 : smk_master;
+        return smk_master;
+    }
     return -1;
 }

@@ -44,7 +44,7 @@ REGIONS = {
 }
 # per board: (FLASH_SIZE = PRCT = the end of what the update loader writes, APP_SLOT, default product)
 BOARDS = {"fm1": (0x93000, 0x8DFBC, "FM-1_900"),
-          "smk37": (0x9D000, 0x8DFBC, "SMK-37 Pro_900")}   # app.ld LENGTH 0x8DFBC: the same slot (spec B1)
+          "smk37": (0x9D000, 0x97400, "SMK-37 Pro_900")}   # SMK: the stock app is 0x974B8; build.py sets app.ld XIP
 
 
 def set_board(board):
