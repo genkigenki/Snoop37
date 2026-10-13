@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Snoop37 (SMK-37 Pro): Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Snoop37 (SMK-37 Pro): Copyright (C) 2026 M. Geisler (makkuro) */
 /* The FADER BANK screen: the four banks, the active one lit, what faders 1..4 set (track colours).
  * FADER BANK opens it and then steps the bank, as < > and K2 SELECT do; PATCH closes it, or it closes by itself. */
 static const char *const FB_NAME[4] = {"LEVEL", "FILTER", "REVERB", "DELAY"};

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Snoop37 (SMK-37 Pro): Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Snoop37 (SMK-37 Pro): Copyright (C) 2026 M. Geisler (makkuro) */
 /* The pad sound picker. The 16 pads (and the screen, 8 x 2) are the sounds of one kind, in the PRESETS
  * order (ui.c BANK), 16 a page, then the user presets; on the drum track the kits. A pad loads its sound
  * (as PRESETS does) and plays a short preview; < > step the pages. KNOB BANK pins it open; a PRESETS

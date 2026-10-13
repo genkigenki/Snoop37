@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Copyright (C) 2026 M. Geisler (makkuro) */
 /* Snoop37 (build flag SNOOP37): the names on the screens */
 #pragma once
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Copyright (C) 2026 M. Geisler (makkuro) */
 /* SNOOP37: two visualiser styles (ui_vis.c calls mkv_draw for them), drawn with the boot splash's renderer
  * (snoop_splash.c) in its strips:
  *   SNOOP    the doghouse: a roof key presses down and lights in a track's colour when that track plays a

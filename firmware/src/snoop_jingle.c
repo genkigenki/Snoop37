@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Copyright (C) 2026 M. Geisler (makkuro) */
 /* SNOOP37 boot jingle: a tiny synth of its own, mixed in the audio ISR (fx.c mix_block, before the buses:
  * dry into the mix, a send into SLOOP's reverb, then the master volume), independent of the project's sounds.
  * A cinematic "deep note": four voices start as a quiet cluster wobbling around G3..D4, glide apart (ease in

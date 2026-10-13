@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * SMK-37 Pro port: Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * SMK-37 Pro port: Copyright (C) 2026 M. Geisler (makkuro) */
 /* The SMK-37 Pro's pitch wheel as a bend (main.c smk_wheels; voice.c applies it to the selected synth track):
  * raw ADC reading -> 1/4096 semitone, +-SMK_PW_ST semitones. Self-calibrating: the rest (centre) is the first
  * reading, the range grows to what the wheel has reached, a dead band of SMK_PW_DEAD around the centre.

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Snoop37 (SMK-37 Pro): Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Snoop37 (SMK-37 Pro): Copyright (C) 2026 M. Geisler (makkuro) */
 /* The pads as a numbered grid read like text (1-8 the top row, 9-16 the bottom): the steps (SEQ held, the
  * DRUMS grid) and the tiles (FX effects, GLO mix, SAVE slots). Playing notes keeps low notes at the bottom. */
 static int padgrid_on(void)

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only
- * Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com> */
+ * Copyright (C) 2026 M. Geisler (makkuro) */
 /* SNOOP37 boot splash and update screens (build flag SNOOP37): a neon doghouse whose roof is a piano
  * keyboard, a Tron-style dog asleep on the ridge, a synthwave sun and a scrolling grid, the rainbow title in
  * a rounded neon-tube font. All procedural, fixed point, no bitmaps: a small 3D renderer (one camera for

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2026 M. Geisler (makkuro) <mcgeisler@gmail.com>
+# Copyright (C) 2026 M. Geisler (makkuro)
 """Host preview of the SNOOP37 boot splash (firmware/src/snoop_splash.c).
 
 Compiles the splash's drawing code with the host C compiler (MK_HOST: no LCD, no timers), renders
